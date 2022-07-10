@@ -99,18 +99,16 @@ Interval IntervalFactory::fromSerialization (const std::string& line)
         index++;
       }
 
-      // Optional '#' <annotation>
-      if (index < tokens.size () && tokens[index] == "#")
+      // Optional '#' <iso> '-' <annotation>
+      while(tokens.size() > index + 3
+          && tokens[index] == "#"
+          && tokens[index + 1].length () == 16
+          && tokens[index + 2] == "-")
       {
-        std::string annotation;
-
-        // Optional <annotation> ...
-        for (unsigned int i = index + 1; i < tokens.size (); ++i)
-        {
-          annotation += (i > index +1 ? " " : "") + tokens[i];
-        }
-
-        interval.setAnnotation (annotation);
+        Datetime time (tokens[index + 1]);
+        std::string annotation (tokens[index + 3]);
+        interval.addAnnotation(time, annotation);
+        index += 4;
       }
     }
 
@@ -140,8 +138,16 @@ Interval IntervalFactory::fromJson (const std::string& jsonString)
       }
     }
 
-    json::string* annotation = (json::string*) json->_data["annotation"];
-    interval.annotation = (annotation != nullptr) ? json::decode (annotation->_data) : "";
+    json::object* annotations = (json::object*) json->_data["annotations"];
+    if (annotations != nullptr)
+    {
+      for (auto& annotation : annotations->_data)
+      {
+        auto time = annotation.first;
+        auto* string = (json::string*) annotation.second;
+        interval.addAnnotation (time, json::decode (string->_data));
+      }
+    }
 
     json::string* start = (json::string*) json->_data["start"];
     interval.start = (start != nullptr) ? Datetime (start->_data) : 0;

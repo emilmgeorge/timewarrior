@@ -89,11 +89,12 @@ int CmdAnnotate (
     }
   }
 
+  const Datetime now {};
   // Apply annotation to intervals.
   for (const auto& interval : intervals)
   {
     Interval modified {interval};
-    modified.setAnnotation (annotation);
+    modified.addAnnotation (now, annotation);
 
     database.modifyInterval (interval, modified, verbose);
 

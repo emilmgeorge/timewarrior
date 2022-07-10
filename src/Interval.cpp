@@ -34,7 +34,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 bool Interval::operator== (const Interval& other) const
 {
-  if ((annotation == other.annotation) &&
+  if ((_annotations == other._annotations) &&
       (_tags == other._tags) &&
       (synthetic == other.synthetic) &&
       (id == other.id))
@@ -57,7 +57,7 @@ bool Interval::empty () const
   return start.toEpoch () == 0 &&
          end.toEpoch ()   == 0 &&
          _tags.empty () &&
-         annotation.empty ();
+         _annotations.empty ();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,10 +129,16 @@ std::string Interval::serialize () const
       out << ' ' << quoteIfNeeded (tag);
   }
 
-  if (! annotation.empty ())
+  if (! _annotations.empty ())
   {
-    out << (_tags.empty () ? " #" : "")
-        << " # \"" << escape (annotation, '"') << "\"";
+    out << (_tags.empty () ? " #" : "");
+    auto it = _annotations.begin();
+    for (; it != _annotations.end(); it++)
+    {
+      Datetime t = it->first;
+      std::string a = it->second;
+      out << " # " << t.toISO() << " - \"" << escape (a, '"') << "\"";
+    }
   }
 
   return out.str ();
@@ -174,9 +180,19 @@ std::string Interval::json () const
           << ']';
     }
 
-    if (! annotation.empty ())
+    if (! _annotations.empty ())
     {
-      out << ",\"annotation\":\"" << json::encode (annotation) << "\"";
+      out << ",\"annotations\": {";
+      auto it = _annotations.begin();
+      for (; it != _annotations.end(); it++)
+      {
+        Datetime t = it->first;
+        std::string a = it->second;
+        if(it != _annotations.begin())
+          out << ", ";
+        out << "\"" << t.toISO() << "\": \"" << json::encode(a) << "\"";
+      }
+      out << "}";
     }
   }
   out << "}";
@@ -225,15 +241,32 @@ void Interval::setRange (const Datetime& start, const Datetime& end)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void Interval::setAnnotation (const std::string& annotation)
+void Interval::addAnnotation(const Datetime& time, const std::string& annotation)
 {
-  this->annotation = annotation;
+  this->_annotations.emplace(time, annotation);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-std::string Interval::getAnnotation () const
+void Interval::removeAnnotation(const Datetime& time)
 {
-  return annotation;
+  auto key = _annotations.find(time);
+  if(key != _annotations.end())
+    _annotations.erase(key);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+std::string Interval::getAnnotation(const Datetime& time) const
+{
+  auto ret = _annotations.find(time);
+  if(ret != _annotations.end())
+    return (*ret).second;
+  return std::string();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+std::map <Datetime,  std::string> Interval::getAnnotations() const
+{
+  return _annotations;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
