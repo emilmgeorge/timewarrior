@@ -243,12 +243,22 @@ Table SummaryTable::Builder::build ()
       {
         auto annotations = track.getAnnotations ();
         int aid = 1;
+        std::string prevDate{};
         for(auto it = annotations.begin(); it != annotations.end(); it++, aid++)
         {
           std::string annotation_entry;
           if(it != annotations.begin())
             row = table.addRow();
-          annotation_entry = "+" + std::to_string(aid) + " " +  it->first.toString("Y-M-D h:N:S");
+          annotation_entry = "+" + std::to_string(aid) + " ";
+          if(prevDate != it->first.toString("Y-M-D"))
+          {
+            annotation_entry += it->first.toString("Y-M-D h:N:S");
+            prevDate = it->first.toString("Y-M-D");
+          }
+          else
+          {
+            annotation_entry += it->first.toString("           h:N:S");
+          }
           annotation_entry += " " + it->second;
           table.set (row, annotation_col_index, annotation_entry);
         }
