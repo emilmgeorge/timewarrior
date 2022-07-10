@@ -241,7 +241,16 @@ Table SummaryTable::Builder::build ()
 
       if (_show_annotations)
       {
-        table.set (row, annotation_col_index, track.getAnnotation ());
+        auto annotations = track.getAnnotations ();
+        for(auto it = annotations.begin(); it != annotations.end(); it++)
+        {
+          std::string annotation_entry;
+          if(it != annotations.begin())
+            row = table.addRow();
+          annotation_entry = it->first.toString("Y-M-D h:N:S");
+          annotation_entry += " => " + it->second;
+          table.set (row, annotation_col_index, annotation_entry);
+        }
       }
 
       const auto total = today.total ();

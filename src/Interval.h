@@ -31,6 +31,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <map>
 
 class Interval : public Range
 {
@@ -54,8 +55,10 @@ public:
   void setRange (const Range& range);
   void setRange (const Datetime& start, const Datetime& end);
 
-  void setAnnotation(const std::string& annotation);
-  std::string getAnnotation() const;
+  void addAnnotation(const Datetime& time, const std::string& annotation);
+  void removeAnnotation(const Datetime& time);
+  std::string getAnnotation(const Datetime& time) const;
+  std::map <Datetime,  std::string> getAnnotations() const;
 
   std::string serialize () const;
   std::string json () const;
@@ -64,10 +67,10 @@ public:
 public:
   int                    id        {0};
   bool                   synthetic {false};
-  std::string            annotation {};
 
 private:
   std::set <std::string> _tags  {};
+  std::map< Datetime, std::string > _annotations {};
 };
 
 #endif
