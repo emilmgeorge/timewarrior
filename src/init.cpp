@@ -98,6 +98,7 @@ void initializeEntities (CLI& cli)
   cli.entity ("hint", ":day");
   cli.entity ("hint", ":debug");
   cli.entity ("hint", ":fill");
+  cli.entity ("hint", ":remove");
   cli.entity ("hint", ":fortnight");
   cli.entity ("hint", ":holidays");
   cli.entity ("hint", ":no-holidays");

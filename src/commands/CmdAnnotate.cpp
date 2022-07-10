@@ -43,6 +43,9 @@ int CmdAnnotate (
 
   auto ids = cli.getIds ();
   auto annotation = cli.getAnnotation ();
+  auto aIds = cli.getAIds ();
+  bool remove_hint = cli.getHint("remove", false);
+  bool removed = false, modded = false, added = false;
 
   journal.startTransaction ();
   flattenDatabase (database, rules);
@@ -94,19 +97,48 @@ int CmdAnnotate (
   for (const auto& interval : intervals)
   {
     Interval modified {interval};
-    modified.addAnnotation (now, annotation);
+    if(aIds.size() > 0)
+    {
+      auto annotations = modified.getAnnotations();
+      int aid = 1;
+      for(auto it = annotations.begin(); it != annotations.end(); it++, aid++)
+      {
+        if(aIds.find(aid) != aIds.end())
+        {
+          if(remove_hint)
+          {
+            modified.removeAnnotation(it->first);
+            removed = true;
+          }
+          else
+          {
+            modified.setAnnotation(it->first, annotation);
+            modded = true;
+          }
+        }
+      }
+    }
+    else
+    {
+      modified.addAnnotation (now, annotation);
+      added = true;
+    }
 
     database.modifyInterval (interval, modified, verbose);
 
     if (verbose)
     {
-      if (annotation.empty ())
+      if (remove_hint && removed)
       {
-        std::cout << "Removed annotation from @" << modified.id << std::endl;
+        std::cout << "Removed annotation(s) from @" << modified.id << std::endl;
       }
-      else
+      if (added)
       {
         std::cout << "Annotated @" << modified.id << " with \"" << annotation << "\"" << std::endl;
+      }
+      if (modded)
+      {
+        std::cout << "Modified annotation(s) in @" << modified.id << " with \"" << annotation << "\"" << std::endl;
       }
     }
   }

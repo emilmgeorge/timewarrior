@@ -69,6 +69,7 @@ public:
   std::string getCommand () const;
   bool getComplementaryHint (const std::string&, bool) const;
   bool getHint(const std::string&, bool) const;
+  std::set <int> getAIds () const;
   std::set <int> getIds () const;
   std::set <std::string> getTags () const;
   std::string getAnnotation() const;
@@ -82,6 +83,7 @@ private:
   void lexArguments ();
   void identifyOverrides ();
   void identifyIds ();
+  void identifyAIds ();
   void canonicalizeNames ();
   void identifyFilter ();
   bool exactMatch (const std::string&, const std::string&) const;

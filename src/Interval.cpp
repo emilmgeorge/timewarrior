@@ -247,6 +247,14 @@ void Interval::addAnnotation(const Datetime& time, const std::string& annotation
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+void Interval::setAnnotation(const Datetime& time, const std::string& annotation)
+{
+  auto it = this->_annotations.find(time);
+  if(it != this->_annotations.end())
+    this->_annotations[time] = annotation;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 void Interval::removeAnnotation(const Datetime& time)
 {
   auto key = _annotations.find(time);
