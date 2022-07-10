@@ -127,6 +127,7 @@ std::string A2::dump () const
     else if (tag == "FILTER")        tags += "\033[1;37;45m"             + tag + "\033[0m ";
     else if (tag == "CONFIG")        tags += "\033[1;37;101m"            + tag + "\033[0m ";
     else if (tag == "ID")            tags += "\033[38;5;7m\033[48;5;34m" + tag + "\033[0m ";
+    else if (tag == "AID")           tags += "\033[38;5;7m\033[48;5;34m" + tag + "\033[0m ";
     else                             tags += "\033[32m"                  + tag + "\033[0m ";
   }
 
@@ -274,6 +275,7 @@ void CLI::analyze ()
   lexArguments ();
   identifyOverrides ();
   identifyIds ();
+  identifyAIds ();
   canonicalizeNames ();
   identifyFilter ();
 }
@@ -427,6 +429,30 @@ void CLI::identifyIds ()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Scan all arguments and identify instances of '+<integer>'.
+void CLI::identifyAIds ()
+{
+  for (auto& a : _args)
+  {
+    if (a._lextype == Lexer::Type::word)
+    {
+      Pig pig (a.attribute ("raw"));
+      int digits;
+      if (pig.skipLiteral ("+")  &&
+          pig.getDigits (digits) &&
+          pig.eos ())
+      {
+        if (digits <= 0)
+          throw format ("'+{1}' is not a valid AID.", digits);
+
+        a.tag ("AID");
+        a.attribute ("value", digits);
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Scan all arguments and canonicalize names that need it.
 void CLI::canonicalizeNames ()
 {
@@ -491,7 +517,8 @@ void CLI::identifyFilter ()
     if (a.hasTag ("CMD")    ||
         a.hasTag ("EXT")    ||
         a.hasTag ("CONFIG") ||
-        a.hasTag ("BINARY"))
+        a.hasTag ("BINARY") ||
+        a.hasTag ("AID"))
       continue;
 
     auto raw = a.attribute ("raw");
@@ -561,6 +588,20 @@ std::set <int> CLI::getIds () const
   }
 
   return ids;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+std::set <int> CLI::getAIds () const
+{
+  std::set <int> aIds;
+
+  for (auto& arg : _args)
+  {
+    if (arg.hasTag ("AID"))
+      aIds.insert (strtol (arg.attribute ("value").c_str (), NULL, 10));
+  }
+
+  return aIds;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

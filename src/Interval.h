@@ -56,6 +56,7 @@ public:
   void setRange (const Datetime& start, const Datetime& end);
 
   void addAnnotation(const Datetime& time, const std::string& annotation);
+  void setAnnotation(const Datetime& time, const std::string& annotation);
   void removeAnnotation(const Datetime& time);
   std::string getAnnotation(const Datetime& time) const;
   std::map <Datetime,  std::string> getAnnotations() const;
