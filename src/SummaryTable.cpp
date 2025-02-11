@@ -117,15 +117,19 @@ Table SummaryTable::Builder::build ()
   const auto weekdays_col_offset = dates_col_offset;
   const auto ids_col_offset = weekdays_col_offset + (_show_weekdays ? 1: 0);
   const auto tags_col_offset = ids_col_offset + (_show_ids ? 1 : 0);
-  const auto annotation_col_offset = tags_col_offset + (_show_tags ? 1 : 0);
-  const auto start_col_offset = annotation_col_offset + (_show_annotations ? 1 : 0);
+  const auto annotation_id_col_offset = tags_col_offset + (_show_tags ? 1 : 0);
+  const auto annotation_datetime_col_offset = annotation_id_col_offset + (_show_annotations ? 1 : 0);
+  const auto annotation_text_col_offset = annotation_datetime_col_offset + (_show_annotations ? 1 : 0);
+  const auto start_col_offset = annotation_text_col_offset + (_show_annotations ? 1 : 0);
 
   const auto weeks_col_index = 0;
   const auto dates_col_index = 0 + dates_col_offset;
   const auto weekdays_col_index = 1 + weekdays_col_offset;
   const auto ids_col_index = 1 + ids_col_offset;
   const auto tags_col_index = 1 + tags_col_offset;
-  const auto annotation_col_index = 1 + annotation_col_offset;
+  const auto annotation_id_col_index = 1 + annotation_id_col_offset;
+  const auto annotation_datetime_col_index = 1 + annotation_datetime_col_offset;
+  const auto annotation_text_col_index = 1 + annotation_text_col_offset;
   const auto start_col_index = 1 + start_col_offset;
   const auto end_col_index = 2 + start_col_offset;
   const auto duration_col_index = 3 + start_col_offset;
@@ -161,7 +165,9 @@ Table SummaryTable::Builder::build ()
 
   if (_show_annotations)
   {
-    table.add ("Annotation");
+    table.add ("A.ID");
+    table.add ("A.  Date     Time  ");
+    table.add ("Annotation Text");
   }
 
   table.add ("Start", false);
@@ -246,21 +252,21 @@ Table SummaryTable::Builder::build ()
         std::string prevDate{};
         for(auto it = annotations.begin(); it != annotations.end(); it++, aid++)
         {
-          std::string annotation_entry;
-          if(it != annotations.begin())
-            row = table.addRow();
-          annotation_entry = "+" + std::to_string(aid) + " ";
+          std::string annotation_datetime;
           if(prevDate != it->first.toString("Y-M-D"))
           {
-            annotation_entry += it->first.toString("Y-M-D h:N:S");
+            annotation_datetime = it->first.toString("Y-M-D h:N:S");
             prevDate = it->first.toString("Y-M-D");
           }
           else
           {
-            annotation_entry += it->first.toString("           h:N:S");
+            annotation_datetime = it->first.toString("           h:N:S");
           }
-          annotation_entry += " " + it->second;
-          table.set (row, annotation_col_index, annotation_entry);
+          if(it != annotations.begin())
+            row = table.addRow();
+          table.set (row, annotation_id_col_index, "+" + std::to_string(aid));
+          table.set (row, annotation_datetime_col_index, annotation_datetime);
+          table.set (row, annotation_text_col_index, it->second);
         }
       }
 
